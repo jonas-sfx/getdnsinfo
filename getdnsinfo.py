@@ -114,7 +114,7 @@ def main():
             fallback_nonanswers = True
             if not args.quiet:
                 print("# No resolving answer from " + ns_ips[0])
-            while len(ns_ips) > 1 and fallback_nonanswers == True:
+            while len(ns_ips) > 1 and fallback_nonanswers is True:
                 removed_ns = ns_ips.pop(0)
                 if not args.quiet:
                     print("# Removed non-answering " + removed_ns + " from list and fallback to "+ str(ns_ips))
