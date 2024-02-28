@@ -5,6 +5,7 @@
 import os
 import json
 import difflib
+import subprocess
 
 # Directory where JSON files are located
 DATA_DIR = "data"
@@ -15,7 +16,7 @@ unchanged_files = []
 
 # Get the list of files mentioned by git status
 git_status_files = [
-    line.split()[-1] for line in os.popen("git status -s").read().splitlines()
+    line.split()[-1] for line in subprocess.run(["git", "status", "-s"], capture_output=True, text=True).stdout.splitlines()
 ]
 
 # Function to sort arrays within JSON objects
@@ -34,7 +35,7 @@ for json_file in os.listdir(DATA_DIR):
             continue
 
         # Extract JSON file in the current commit
-        current_json = os.popen(f"git show HEAD:{os.path.join(DATA_DIR, json_file)}").read()
+        current_json = subprocess.run(["git", "show", f"HEAD:{os.path.join(DATA_DIR, json_file)}"], capture_output=True, text=True).stdout
 
         # Extract JSON file in the working copy
         with open(os.path.join(DATA_DIR, json_file), "r") as file:
@@ -76,7 +77,7 @@ if unchanged_files:
     )
     if reset_option.lower() == "y":
         for file in unchanged_files:
-            os.system(f"git checkout HEAD {os.path.join(DATA_DIR, file)}")
+            subprocess.run(["git", "checkout", "HEAD", os.path.join(DATA_DIR, file)])
         print("Unchanged files have been reset to their previous state.")
     else:
         print("No files were reset.")
