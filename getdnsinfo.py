@@ -12,7 +12,7 @@ import dns.resolver
 from tld import get_fld
 import idna
 
-def to_punycode(domain, args, dns_resolver):
+def to_punycode(domain, args):
     # Split the domain name into labels
     labels = domain.split('.')
     punycode_labels = []
@@ -47,7 +47,7 @@ def resolve_dns(domain, args, dns_resolver):
     dns_resolver.nameservers = ['8.8.8.8']
     ns_ips = []
 
-    punycode_domain = to_punycode(domain, args, dns_resolver)
+    punycode_domain = to_punycode(domain, args)
 
     try:
         my_target_ns = dns_resolver.resolve(punycode_domain, 'NS')
@@ -92,7 +92,7 @@ def main():
         print("Please provide a domain using -d or --domain option.")
         return
     else:
-        punycode_domain = to_punycode(args.domain, args, dns_resolver)
+        punycode_domain = to_punycode(args.domain, args)
 
     own_resolver_found, ns_ips = resolve_dns(punycode_domain, args, dns_resolver)
 
