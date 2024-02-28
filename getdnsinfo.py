@@ -127,8 +127,8 @@ def main():
                 except dns.resolver.NXDOMAIN:
                         continue
 
-    # gather dmarc-cnames (on tlds only)
     if punycode_domain == get_fld(punycode_domain, fix_protocol=True):
+        # gather dmarc-cnames (on tlds)
         try:
             dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'CNAME')
             answers['~dmarc-cnames'] = [str(data) for data in dmarc_answer]
@@ -136,8 +136,7 @@ def main():
             if not args.quiet:
                 print('# no dmarc-cname-info for ' + args.domain + ' found.')
 
-    # gather dmarc-txt
-    if punycode_domain == get_fld(punycode_domain, fix_protocol=True):
+        # gather dmarc-cnames (on tlds)
         try:
             dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'TXT')
             answers['~dmarc-txts'] = [str(data) for data in dmarc_answer]
@@ -152,6 +151,7 @@ def main():
     if not args.nofile:
         json_file_path = "data/" + punycode_domain + ".json"
         data_changed = False
+
         if path.isfile(json_file_path):
             with open(json_file_path, 'r') as myfile:
                 old_json = json.loads(myfile.read())
