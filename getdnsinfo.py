@@ -93,18 +93,15 @@ def main():
     else:
         punycode_domain = to_punycode(args.domain, args, dns_resolver)
 
-    own_resolver_found = False
-
-
-    answers = {}
-    entries = ['A', 'AAAA', 'CAA', 'CNAME', 'MX', 'SRV', 'PTR', 'SOA', 'TXT', 'NS']
-
     own_resolver_found, ns_ips = resolve_dns(punycode_domain, args, dns_resolver)
 
     if not own_resolver_found and not args.quiet:
         print("# No NS found for " + args.domain)
 
     # gather dns-data
+    entries = ['A', 'AAAA', 'CAA', 'CNAME', 'MX', 'SRV', 'PTR', 'SOA', 'TXT', 'NS']
+    answers = {}
+
     for entry in entries:
         try:
             answer = dns_resolver.resolve(punycode_domain, entry)
