@@ -124,6 +124,8 @@ def main():
                         continue
 
     if punycode_domain == get_fld(punycode_domain, fix_protocol=True):
+        subdomain_prefix = '@'
+
         # gather dmarc-cnames (on tlds)
         try:
             dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'CNAME')
@@ -139,8 +141,14 @@ def main():
         except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
             if not args.quiet:
                 print('# no dmarc-txt-info for ' + args.domain + ' found.')
+    else:
+        subdomain_prefix = punycode_domain.replace('.' + get_fld(punycode_domain, fix_protocol=True), '') 
+    
+    print('# subdomainprefix: ' + subdomain_prefix)
 
-    json_data = json.dumps(answers, indent=4, sort_keys=True)
+    prefixed_answers = {subdomain_prefix: answers}
+
+    json_data = json.dumps(prefixed_answers, indent=4, sort_keys=True)
     print(json_data)
 
     # write data to file except file exists and data is still the same
