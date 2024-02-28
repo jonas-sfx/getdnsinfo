@@ -11,6 +11,9 @@ import shutil
 # Directory where JSON files are located
 DATA_DIR = "data"
 
+# Change working directory to DATA_DIR
+os.chdir(DATA_DIR)
+
 # List of JSON files with deltas from the last commit
 delta_files = []
 unchanged_files = []
@@ -34,17 +37,17 @@ def sort_arrays(obj):
     return obj
 
 # Loop over JSON files in the DATA_DIR
-for json_file in os.listdir(DATA_DIR):
+for json_file in os.listdir('.'):
     if json_file.endswith(".json"):
         # Check if the JSON file differs from the last commit (HEAD)
-        if os.path.join(DATA_DIR, json_file) not in git_status_files:
+        if json_file not in git_status_files:
             continue
 
         # Extract JSON file in the current commit
-        current_json = subprocess.run([git_executable, "show", f"HEAD:{os.path.join(DATA_DIR, json_file)}"], capture_output=True, text=True).stdout
+        current_json = subprocess.run([git_executable, "show", f"HEAD:{json_file}"], capture_output=True, text=True).stdout
 
         # Extract JSON file in the working copy
-        with open(os.path.join(DATA_DIR, json_file), "r") as file:
+        with open(json_file, "r") as file:
             working_copy_json = file.read()
 
         # Load JSON data
@@ -83,7 +86,7 @@ if unchanged_files:
     )
     if reset_option.lower() == "y":
         for file in unchanged_files:
-            subprocess.run([git_executable, "checkout", "HEAD", os.path.join(DATA_DIR, file)])
+            subprocess.run([git_executable, "checkout", "HEAD", file])
         print("Unchanged files have been reset to their previous state.")
     else:
         print("No files were reset.")
