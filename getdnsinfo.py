@@ -4,12 +4,13 @@
 
 import argparse
 import json
-from os import path
+import sys
 from collections import Counter
+from os import path
+
 import dns.resolver
 from tld import get_fld
 import idna
-import sys
 
 def to_punycode(domain, args, dns_resolver):
     # Split the domain name into labels
