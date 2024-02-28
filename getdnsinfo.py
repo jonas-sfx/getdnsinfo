@@ -123,7 +123,7 @@ def main():
                     answers[entry] = [str(data) for data in answer]
                     fallback_nonanswers == False
                 except dns.resolver.NXDOMAIN:
-                        continue
+                    continue
 
     while len(answers.keys())== 0:
         removed_ns = ns_ips.pop(0)
