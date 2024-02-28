@@ -101,6 +101,7 @@ def main():
     # gather dns-data
     entries = ['A', 'AAAA', 'CAA', 'CNAME', 'MX', 'SRV', 'PTR', 'SOA', 'TXT', 'NS']
     answers = {}
+    prefixed_answers = {}
 
     for entry in entries:
         try:
@@ -139,7 +140,10 @@ def main():
         # gather dmarc-cnames (on tlds)
         try:
             dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'CNAME')
-            answers['~dmarc-cnames'] = [str(data) for data in dmarc_answer]
+            if not '_dmarc' in prefixed_answers:
+                prefixed_answers['_dmarc'] = {}
+            if not 'CNAME' in prefixed_answers['_dmarc']:
+                prefixed_answers['_dmarc']['CNAME'] = [str(data) for data in dmarc_answer]
         except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
             if not args.quiet:
                 print('# no dmarc-cname-info for ' + args.domain + ' found.')
@@ -147,16 +151,21 @@ def main():
         # gather dmarc-cnames (on tlds)
         try:
             dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'TXT')
-            answers['~dmarc-txts'] = [str(data) for data in dmarc_answer]
+
+            if not '_dmarc' in prefixed_answers:
+                prefixed_answers['_dmarc'] = {}
+            if not 'TXT' in prefixed_answers['_dmarc']:
+                prefixed_answers['_dmarc']['TXT'] = [str(data) for data in dmarc_answer]
         except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
             if not args.quiet:
                 print('# no dmarc-txt-info for ' + args.domain + ' found.')
+
     else:
         subdomain_prefix = punycode_domain.replace('.' + get_fld(punycode_domain, fix_protocol=True), '') 
     
     print('# subdomainprefix: ' + subdomain_prefix)
 
-    prefixed_answers = {subdomain_prefix: answers}
+    prefixed_answers[subdomain_prefix] = answers
 
     json_data = json.dumps(prefixed_answers, indent=4, sort_keys=True)
     print(json_data)
