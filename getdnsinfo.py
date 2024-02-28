@@ -123,6 +123,16 @@ def main():
                 except dns.resolver.NXDOMAIN:
                         continue
 
+    while len(answers.keys())== 0:
+        removed_ns = ns_ips.pop(0)
+        if not args.quiet:
+            print("# Removed non/empty-answering " + removed_ns + " from list and fallback to "+ str(ns_ips))
+        try:
+            answer = dns_resolver.resolve(punycode_domain, entry)
+            answers[entry] = [str(data) for data in answer]
+        except dns.resolver.NoAnswer:
+            continue
+
     if punycode_domain == get_fld(punycode_domain, fix_protocol=True):
         subdomain_prefix = '@'
 
