@@ -111,6 +111,21 @@ def main():
             answers[entry] = [str(data) for data in answer]
         except dns.resolver.NoAnswer:
             continue
+        except dns.resolver.NXDOMAIN:
+            if not args.quiet:
+                print("# No resolving answer from " + ns_ips[0])
+                falling_back = True
+                        
+            while len(ns_ips) > 1 and falling_back == True:
+                removed_ns = ns_ips.pop(0)
+                if not args.quiet:
+                    print("# Removed non-answering " + removed_ns + " from list and fallback to "+ str(ns_ips))
+                try:
+                    answer = dns_resolver.resolve(punycode_domain, entry)
+                    answers[entry] = [str(data) for data in answer]
+                    falling_back == False
+                except dns.resolver.NXDOMAIN:
+                        continue
 
     # gather dmarc-cnames (on tlds only)
     if punycode_domain == get_fld(punycode_domain, fix_protocol=True):
