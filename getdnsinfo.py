@@ -50,7 +50,6 @@ def resolve_dns(domain, args, dns_resolver):
 
     try:
         my_target_ns = dns_resolver.resolve(punycode_domain, 'NS')
-
     except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
         my_target_ns = []
         if not args.quiet:
@@ -58,22 +57,19 @@ def resolve_dns(domain, args, dns_resolver):
 
     try:
         tld_target_ns = dns_resolver.resolve(get_fld(punycode_domain, fix_protocol=True), 'NS')
-    
     except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
         tld_target_ns = []
         if not args.quiet:
             print('# No NS for TLD found!')
 
-    target_ns = list(my_target_ns)
-    target_ns.extend(x for x in tld_target_ns if x not in target_ns)
+    target_ns = list(set(my_target_ns).union(set(tld_target_ns)))
 
-    if len(target_ns) == 0:
+    if not target_ns:
         return False, None
 
     for ns in target_ns:
         ns_a = dns_resolver.resolve(str(ns).strip('.'), 'A')
-        for data in ns_a:
-            ns_ips.append(str(data))
+        ns_ips.extend(str(data) for data in ns_a)
 
     dns_resolver.nameservers = ns_ips
     if not args.quiet:
