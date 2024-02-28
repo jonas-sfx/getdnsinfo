@@ -43,7 +43,7 @@ def to_punycode(domain, args):
     return punycode_domain
 
 
-def resolve_dns(domain, args, dns_resolver):    
+def resolve_dns(domain, args, dns_resolver):
     dns_resolver.nameservers = ['8.8.8.8']
     ns_ips = []
 
@@ -162,8 +162,8 @@ def main():
                 print('# no dmarc-txt-info for ' + args.domain + ' found.')
 
     else:
-        subdomain_prefix = punycode_domain.replace('.' + get_fld(punycode_domain, fix_protocol=True), '') 
-    
+        subdomain_prefix = punycode_domain.replace('.' + get_fld(punycode_domain, fix_protocol=True), '')
+
     print('# subdomainprefix: ' + subdomain_prefix)
 
     prefixed_answers[subdomain_prefix] = answers
