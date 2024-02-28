@@ -109,10 +109,9 @@ def main():
         except dns.resolver.NoAnswer:
             continue
         except dns.resolver.NXDOMAIN:
+            falling_back = True
             if not args.quiet:
                 print("# No resolving answer from " + ns_ips[0])
-                falling_back = True
-                        
             while len(ns_ips) > 1 and falling_back == True:
                 removed_ns = ns_ips.pop(0)
                 if not args.quiet:
