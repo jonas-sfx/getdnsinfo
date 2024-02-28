@@ -6,6 +6,7 @@ import os
 import json
 import difflib
 import subprocess
+import shutil
 
 # Directory where JSON files are located
 DATA_DIR = "data"
@@ -15,8 +16,13 @@ delta_files = []
 unchanged_files = []
 
 # Get the list of files mentioned by git status
+git_executable = shutil.which("git")
+if git_executable is None:
+    print("Git executable not found. Please make sure Git is installed and in the system PATH.")
+    exit(1)
+
 git_status_files = [
-    line.split()[-1] for line in subprocess.run(["git", "status", "-s"], capture_output=True, text=True).stdout.splitlines()
+    line.split()[-1] for line in subprocess.run([git_executable, "status", "-s"], capture_output=True, text=True).stdout.splitlines()
 ]
 
 # Function to sort arrays within JSON objects
@@ -35,7 +41,7 @@ for json_file in os.listdir(DATA_DIR):
             continue
 
         # Extract JSON file in the current commit
-        current_json = subprocess.run(["git", "show", f"HEAD:{os.path.join(DATA_DIR, json_file)}"], capture_output=True, text=True).stdout
+        current_json = subprocess.run([git_executable, "show", f"HEAD:{os.path.join(DATA_DIR, json_file)}"], capture_output=True, text=True).stdout
 
         # Extract JSON file in the working copy
         with open(os.path.join(DATA_DIR, json_file), "r") as file:
@@ -77,7 +83,7 @@ if unchanged_files:
     )
     if reset_option.lower() == "y":
         for file in unchanged_files:
-            subprocess.run(["git", "checkout", "HEAD", os.path.join(DATA_DIR, file)])
+            subprocess.run([git_executable, "checkout", "HEAD", os.path.join(DATA_DIR, file)])
         print("Unchanged files have been reset to their previous state.")
     else:
         print("No files were reset.")
