@@ -55,8 +55,10 @@ for json_file in os.listdir('.'):
         working_copy_data = json.loads(working_copy_json)
 
         # Ignore the "SOA" key in the comparison
-        current_data.pop("SOA", None)
-        working_copy_data.pop("SOA", None)
+        for key in current_data:
+            current_data[key].pop("SOA", None)
+        for key in working_copy_data:
+            working_copy_data.pop("SOA", None)
 
         # Sort arrays within JSON objects
         current_data_sorted = sort_arrays(current_data)
