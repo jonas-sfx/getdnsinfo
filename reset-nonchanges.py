@@ -55,14 +55,19 @@ for json_file in os.listdir('.'):
         working_copy_data = json.loads(working_copy_json)
 
         # Ignore the "SOA" key in the comparison
-        for key in current_data:
+        for key in current_data.keys():
             current_data[key].pop("SOA", None)
-        for key in working_copy_data:
-            working_copy_data.pop("SOA", None)
+        for key in working_copy_data.keys():
+            working_copy_data[key].pop("SOA", None)
 
         # Sort arrays within JSON objects
-        current_data_sorted = sort_arrays(current_data)
-        working_copy_data_sorted = sort_arrays(working_copy_data)
+        current_data_sorted = {}
+        for key in current_data.keys():
+            current_data_sorted[key] = sort_arrays(current_data[key])
+        
+        working_copy_data_sorted = {}
+        for key in working_copy_data.keys():
+            working_copy_data_sorted[key] = sort_arrays(working_copy_data[key])
 
         # Compare JSON files
         if current_data_sorted != working_copy_data_sorted:
