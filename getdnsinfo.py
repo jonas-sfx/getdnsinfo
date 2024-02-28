@@ -141,9 +141,9 @@ def main():
         # gather dmarc-cnames (on tlds)
         try:
             dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'CNAME')
-            if not '_dmarc' in prefixed_answers:
+            if '_dmarc' not in prefixed_answers:
                 prefixed_answers['_dmarc'] = {}
-            if not 'CNAME' in prefixed_answers['_dmarc']:
+            if 'CNAME' not in prefixed_answers['_dmarc']:
                 prefixed_answers['_dmarc']['CNAME'] = [str(data) for data in dmarc_answer]
         except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
             if not args.quiet:
@@ -153,9 +153,9 @@ def main():
         try:
             dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'TXT')
 
-            if not '_dmarc' in prefixed_answers:
+            if '_dmarc' not in prefixed_answers:
                 prefixed_answers['_dmarc'] = {}
-            if not 'TXT' in prefixed_answers['_dmarc']:
+            if 'TXT' not in prefixed_answers['_dmarc']:
                 prefixed_answers['_dmarc']['TXT'] = [str(data) for data in dmarc_answer]
         except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
             if not args.quiet:
