@@ -177,7 +177,7 @@ def main():
         data_changed = False
 
         if path.isfile(json_file_path):
-            with open(json_file_path, 'r') as myfile:
+            with open(file=json_file_path, mode='r', encoding="utf-8") as myfile:
                 old_json = json.loads(myfile.read())
                 for entry in list(set(entries) | set(answers.keys())):
                     old_data = old_json.get(entry)
@@ -191,7 +191,7 @@ def main():
             data_changed = True
 
         if data_changed:
-            with open(json_file_path, "w") as json_file:
+            with open(file=json_file_path, mode='w', encoding="utf-8") as json_file:
                 json_file.write(json_data)
 
 if __name__ == "__main__":
