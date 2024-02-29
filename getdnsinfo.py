@@ -12,6 +12,9 @@ import dns.resolver
 from tld import get_fld
 import idna
 
+DEFAULT_NAMESERVER = '8.8.8.8'
+DNS_ENTRIES = ['A', 'AAAA', 'CAA', 'CNAME', 'MX', 'SRV', 'PTR', 'SOA', 'TXT', 'NS']
+
 def to_punycode(domain, args):
     # Split the domain name into labels
     labels = domain.split('.')
@@ -44,7 +47,7 @@ def to_punycode(domain, args):
 
 
 def resolve_dns(domain, args, dns_resolver):
-    dns_resolver.nameservers = ['8.8.8.8']
+    dns_resolver.nameservers = [DEFAULT_NAMESERVER]
     ns_ips = []
 
     punycode_domain = to_punycode(domain, args)
@@ -104,7 +107,7 @@ def main():
     answers = {}
     prefixed_answers = {}
 
-    for entry in entries:
+    for entry in DNS_ENTRIES:
         try:
             answer = dns_resolver.resolve(punycode_domain, entry)
             answers[entry] = [str(data) for data in answer]
@@ -179,7 +182,7 @@ def main():
         if path.isfile(json_file_path):
             with open(file=json_file_path, mode='r', encoding="utf-8") as myfile:
                 old_json = json.loads(myfile.read())
-                for entry in list(set(entries) | set(answers.keys())):
+                for entry in list(set(DNS_ENTRIES) | set(answers.keys())):
                     old_data = old_json.get(entry)
                     new_data = answers.get(entry)
                     if Counter(new_data) != Counter(old_data):
