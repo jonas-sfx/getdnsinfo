@@ -166,6 +166,7 @@ def main():
     answers = gather_dns_data(punycode_domain, dns_resolver, ns_ips, args)
     prefixed_answers = {}
 
+    print(json.dumps(prefixed_answers, indent=4, sort_keys=True))
     write_to_file(prefixed_answers, punycode_domain, args)
     if punycode_domain == get_fld(punycode_domain, fix_protocol=True):
         subdomain_prefix = '@'
@@ -198,9 +199,9 @@ def main():
 
     print('# subdomainprefix: ' + subdomain_prefix)
     prefixed_answers[subdomain_prefix] = answers
-
-    json_data = json.dumps(prefixed_answers, indent=4, sort_keys=True)
-    print(json_data)
+    
+    
+    
 
 if __name__ == "__main__":
     main()
