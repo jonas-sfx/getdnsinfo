@@ -80,6 +80,42 @@ def resolve_dns(domain, args, dns_resolver):
         print('# NS found:' + str(ns_ips))
     return True, ns_ips
 
+def gather_dns_data(domain, dns_resolver, ns_ips, args):
+    answers = {}
+
+    for entry in DNS_ENTRIES:
+        try:
+            answer = dns_resolver.resolve(domain, entry)
+            answers[entry] = [str(data) for data in answer]
+        except dns.resolver.NoAnswer:
+            continue
+        except dns.resolver.NXDOMAIN:
+            fallback_nonanswers = True
+            if not args.quiet:
+                print("# No resolving answer from " + ns_ips[0])
+            while len(ns_ips) > 1 and fallback_nonanswers is True:
+                removed_ns = ns_ips.pop(0)
+                if not args.quiet:
+                    print("# Removed non-answering " + removed_ns + " from list and fallback to "+ str(ns_ips))
+                try:
+                    answer = dns_resolver.resolve(domain, entry)
+                    answers[entry] = [str(data) for data in answer]
+                    fallback_nonanswers == False
+                except dns.resolver.NXDOMAIN:
+                    continue
+
+    while len(answers.keys())== 0:
+        removed_ns = ns_ips.pop(0)
+        if not args.quiet:
+            print("# Removed non/empty-answering " + removed_ns + " from list and fallback to "+ str(ns_ips))
+        try:
+            answer = dns_resolver.resolve(domain, entry)
+            answers[entry] = [str(data) for data in answer]
+        except dns.resolver.NoAnswer:
+            continue
+
+    return answers
+
 def main():
     dns_resolver = dns.resolver.Resolver()
     dns_resolver.raise_on_no_answer = True  # Prevent following CNAME records
@@ -102,41 +138,8 @@ def main():
     if not own_resolver_found and not args.quiet:
         print("# No NS found for " + args.domain)
 
-    # gather dns-data
-    entries = ['A', 'AAAA', 'CAA', 'CNAME', 'MX', 'SRV', 'PTR', 'SOA', 'TXT', 'NS']
-    answers = {}
+    answers = gather_dns_data(punycode_domain, dns_resolver, ns_ips, args)
     prefixed_answers = {}
-
-    for entry in DNS_ENTRIES:
-        try:
-            answer = dns_resolver.resolve(punycode_domain, entry)
-            answers[entry] = [str(data) for data in answer]
-        except dns.resolver.NoAnswer:
-            continue
-        except dns.resolver.NXDOMAIN:
-            fallback_nonanswers = True
-            if not args.quiet:
-                print("# No resolving answer from " + ns_ips[0])
-            while len(ns_ips) > 1 and fallback_nonanswers is True:
-                removed_ns = ns_ips.pop(0)
-                if not args.quiet:
-                    print("# Removed non-answering " + removed_ns + " from list and fallback to "+ str(ns_ips))
-                try:
-                    answer = dns_resolver.resolve(punycode_domain, entry)
-                    answers[entry] = [str(data) for data in answer]
-                    fallback_nonanswers == False
-                except dns.resolver.NXDOMAIN:
-                    continue
-
-    while len(answers.keys())== 0:
-        removed_ns = ns_ips.pop(0)
-        if not args.quiet:
-            print("# Removed non/empty-answering " + removed_ns + " from list and fallback to "+ str(ns_ips))
-        try:
-            answer = dns_resolver.resolve(punycode_domain, entry)
-            answers[entry] = [str(data) for data in answer]
-        except dns.resolver.NoAnswer:
-            continue
 
     if punycode_domain == get_fld(punycode_domain, fix_protocol=True):
         subdomain_prefix = '@'
