@@ -116,6 +116,29 @@ def gather_dns_data(domain, dns_resolver, ns_ips, args):
 
     return answers
 
+def write_to_file(prefixed_answers, punycode_domain, args):
+    if not args.nofile:
+        json_file_path = "data/" + punycode_domain + ".json"
+        data_changed = False
+
+        if path.isfile(json_file_path):
+            with open(file=json_file_path, mode='r', encoding="utf-8") as myfile:
+                old_json = json.loads(myfile.read())
+                for entry in list(set(DNS_ENTRIES) | set(prefixed_answers.keys())):
+                    old_data = old_json.get(entry)
+                    new_data = prefixed_answers.get(entry)
+                    if Counter(new_data) != Counter(old_data):
+                        if not args.quiet:
+                            print('Data Difference occurred!')
+                        data_changed = True
+                        continue
+        else:
+            data_changed = True
+
+        if data_changed:
+            with open(file=json_file_path, mode='w', encoding="utf-8") as json_file:
+                json_file.write(json_data)
+
 def parse_arguments():
     arg_parser = argparse.ArgumentParser(description='Get DNS Information for domainname')
     arg_parser.add_argument('-d', '--domain', default=None, help='the domainname you want to inspect')
@@ -143,6 +166,7 @@ def main():
     answers = gather_dns_data(punycode_domain, dns_resolver, ns_ips, args)
     prefixed_answers = {}
 
+    write_to_file(prefixed_answers, punycode_domain, args)
     if punycode_domain == get_fld(punycode_domain, fix_protocol=True):
         subdomain_prefix = '@'
 
@@ -173,34 +197,10 @@ def main():
         subdomain_prefix = punycode_domain.replace('.' + get_fld(punycode_domain, fix_protocol=True), '')
 
     print('# subdomainprefix: ' + subdomain_prefix)
-
     prefixed_answers[subdomain_prefix] = answers
 
     json_data = json.dumps(prefixed_answers, indent=4, sort_keys=True)
     print(json_data)
-
-    # write data to file except file exists and data is still the same
-    if not args.nofile:
-        json_file_path = "data/" + punycode_domain + ".json"
-        data_changed = False
-
-        if path.isfile(json_file_path):
-            with open(file=json_file_path, mode='r', encoding="utf-8") as myfile:
-                old_json = json.loads(myfile.read())
-                for entry in list(set(DNS_ENTRIES) | set(answers.keys())):
-                    old_data = old_json.get(entry)
-                    new_data = answers.get(entry)
-                    if Counter(new_data) != Counter(old_data):
-                        if not args.quiet:
-                            print('Data Difference occurred!')
-                        data_changed = True
-                        continue
-        else:
-            data_changed = True
-
-        if data_changed:
-            with open(file=json_file_path, mode='w', encoding="utf-8") as json_file:
-                json_file.write(json_data)
 
 if __name__ == "__main__":
     main()
