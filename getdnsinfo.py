@@ -155,8 +155,8 @@ def main():
     if args.domain is None:
         print("Please provide a domain using -d or --domain option.")
         return
-    else:
-        punycode_domain = to_punycode(args.domain, args)
+
+    punycode_domain = to_punycode(args.domain, args)
 
     own_resolver_found, ns_ips = resolve_dns(punycode_domain, args, dns_resolver)
 
