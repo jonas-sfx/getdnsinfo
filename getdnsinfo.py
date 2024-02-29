@@ -116,16 +116,18 @@ def gather_dns_data(domain, dns_resolver, ns_ips, args):
 
     return answers
 
-def main():
-    dns_resolver = dns.resolver.Resolver()
-    dns_resolver.raise_on_no_answer = True  # Prevent following CNAME records
-
-    # Argument parsing
+def parse_arguments():
     arg_parser = argparse.ArgumentParser(description='Get DNS Information for domainname')
     arg_parser.add_argument('-d', '--domain', default=None, help='the domainname you want to inspect')
     arg_parser.add_argument('-n', '--nofile', default=False, action='store_true', help='do not write result to data/domain.json')
     arg_parser.add_argument('-q', '--quiet', default=False, action='store_true', help='do not print errors/warnings')
-    args = arg_parser.parse_args()
+    return arg_parser.parse_args()
+
+def main():
+    dns_resolver = dns.resolver.Resolver()
+    dns_resolver.raise_on_no_answer = True  # Prevent following CNAME records
+
+    args = parse_arguments()
 
     if args.domain is None:
         print("Please provide a domain using -d or --domain option.")
