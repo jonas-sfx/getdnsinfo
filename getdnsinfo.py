@@ -167,7 +167,7 @@ def write_to_file(prefixed_answers, punycode_domain, args):
 
         if data_changed:
             with open(file=json_file_path, mode='w', encoding="utf-8") as json_file:
-                json_file.write(json_data)
+                json_file.write(json.dumps(prefixed_answers, indent=4, sort_keys=True))
 
 def parse_arguments():
     arg_parser = argparse.ArgumentParser(description='Get DNS Information for domainname')
