@@ -116,6 +116,36 @@ def gather_dns_data(domain, dns_resolver, ns_ips, args):
 
     return answers
 
+def create_prefixed_answers(punycode_domain, answers, dns_resolver, args):
+    prefixed_answers = {}
+    if punycode_domain == get_fld(punycode_domain, fix_protocol=True):
+        subdomain_prefix = '@'
+
+        # gather dmarc-cnames (on tlds)
+        try:
+            dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'CNAME')
+            prefixed_answers['_dmarc'] = {'CNAME': [str(data) for data in dmarc_answer]}
+        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+            if not args.quiet:
+                print('# no dmarc-cname-info for ' + args.domain + ' found.')
+
+        # gather dmarc-txts (on tlds)
+        try:
+            dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'TXT')
+            prefixed_answers.setdefault('_dmarc', {})['TXT'] = [str(data) for data in dmarc_answer]
+        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+            if not args.quiet:
+                print('# no dmarc-txt-info for ' + args.domain + ' found.')
+
+    else:
+        subdomain_prefix = punycode_domain.replace('.' + get_fld(punycode_domain, fix_protocol=True), '')
+
+    if not args.quiet:
+        print('# subdomainprefix: ' + subdomain_prefix)
+    prefixed_answers[subdomain_prefix] = answers
+    
+    return prefixed_answers
+
 def write_to_file(prefixed_answers, punycode_domain, args):
     if not args.nofile:
         json_file_path = "data/" + punycode_domain + ".json"
@@ -164,44 +194,10 @@ def main():
         print("# No NS found for " + args.domain)
 
     answers = gather_dns_data(punycode_domain, dns_resolver, ns_ips, args)
-    prefixed_answers = {}
+    prefixed_answers = create_prefixed_answers(punycode_domain, answers, dns_resolver, args)
 
     print(json.dumps(prefixed_answers, indent=4, sort_keys=True))
     write_to_file(prefixed_answers, punycode_domain, args)
-    if punycode_domain == get_fld(punycode_domain, fix_protocol=True):
-        subdomain_prefix = '@'
-
-        # gather dmarc-cnames (on tlds)
-        try:
-            dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'CNAME')
-            if '_dmarc' not in prefixed_answers:
-                prefixed_answers['_dmarc'] = {}
-            if 'CNAME' not in prefixed_answers['_dmarc']:
-                prefixed_answers['_dmarc']['CNAME'] = [str(data) for data in dmarc_answer]
-        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
-            if not args.quiet:
-                print('# no dmarc-cname-info for ' + args.domain + ' found.')
-
-        # gather dmarc-cnames (on tlds)
-        try:
-            dmarc_answer = dns_resolver.resolve('_dmarc.' + punycode_domain, 'TXT')
-
-            if '_dmarc' not in prefixed_answers:
-                prefixed_answers['_dmarc'] = {}
-            if 'TXT' not in prefixed_answers['_dmarc']:
-                prefixed_answers['_dmarc']['TXT'] = [str(data) for data in dmarc_answer]
-        except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
-            if not args.quiet:
-                print('# no dmarc-txt-info for ' + args.domain + ' found.')
-
-    else:
-        subdomain_prefix = punycode_domain.replace('.' + get_fld(punycode_domain, fix_protocol=True), '')
-
-    print('# subdomainprefix: ' + subdomain_prefix)
-    prefixed_answers[subdomain_prefix] = answers
-    
-    
-    
 
 if __name__ == "__main__":
     main()
